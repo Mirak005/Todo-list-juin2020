@@ -1,94 +1,119 @@
 import React, { useState } from "react";
-
+import "./App.css";
 
 function App() {
-  const [text, setText] = useState("");
-  const [editText, setEditText] = useState("");
+  const [value, setValue] = useState("");
   const [todos, setTodos] = useState([
-    { text: "My First task", id: 0, readOnly: true },
-    { text: "second task", id: 1, readOnly: true },
+    { text: "My First task", id: 0, isEdited: false, isComplet: true },
+    { text: "second task", id: 1, isEdited: false, isComplet: false },
   ]);
 
-  // add todo
-  const addTodo = (event) => {
+  //add todo
+  const addTodo = (event, newText) => {
     event.preventDefault();
-    if (text.trim() === "") {
-      alert("Enter A valid todo");
-      return;
+    if (newText.trim() === "") {
+      return alert("Enter a Valid Todo");
     }
+
     const newTodo = {
-      text: text,
+      text: newText,
       id: todos.length,
-      readOnly: true,
+      isEdited: false,
+      isComplet: false,
     };
+
     setTodos([...todos, newTodo]);
-    setText("");
+    //reset the value
+    setValue("");
   };
 
   //remove todo
-  const removeTodo = (id) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
+  const removeTodo = (id) => setTodos(todos.filter((todo) => todo.id !== id));
 
-  const startEdit = (id, oldValue) => {
+  //edit Todo
+  const editTodo = (id, newTodo) =>
+    setTodos(
+      todos.map((todo) => (todo.id === id ? { ...todo, text: newTodo } : todo))
+    );
+  // setTodos(
+  //   todos.map((todo) => {
+  //     if (todo.id === id) {
+  //       return {
+  //         text: newTodo,
+  //         id: todo.id,
+  //       };
+  //     } else {
+  //       return todo;
+  //     }
+  //   })
+  // );
+
+  // toggle Edited
+  const onFocus = (id) =>
     setTodos(
       todos.map((todo) =>
-        id === todo.id
-          ? { ...todo, readOnly: false }
-          : { ...todo, readOnly: true }
+        todo.id === id
+          ? { ...todo, isEdited: true }
+          : { ...todo, isEdited: false }
       )
     );
-    setEditText(oldValue);
-  };
+  // finish the edit mode
+  const onBlur = () =>
+    setTodos(todos.map((todo) => ({ ...todo, isEdited: false })));
 
-  //confirm edit
-  const confirmEdit = (id, newText) => {
-    if (newText.trim() === "") {
-      setTodos(
-        todos.map((todo) =>
-          todo.id === id ? { ...todo, readOnly: true } : todo
-        )
-      );
-      return alert("Enter a valid modification");
-    }
-
+  const handleComplete = (id) =>
     setTodos(
       todos.map((todo) =>
-        id === todo.id ? { ...todo, text: newText, readOnly: true } : todo
+        todo.id === id ? { ...todo, isComplet: !todo.isComplet } : todo
       )
     );
-  };
 
   return (
     <div>
-      <form>
-        <input
-          value={text}
-          type="text"
-          onChange={(e) => setText(e.target.value)}
-        />
-        {/*  onClick={(event)=> addTodo(event)}    */}
-        <button onClick={addTodo}>Add</button>
+      <form className="add-todo-form">
+        <h1>Todo-App</h1>
+        <div className="input-container">
+          <input
+            // save the todo in value
+            onChange={(event) => setValue(event.target.value)}
+            value={value}
+            type="text"
+          />
+          <button
+            onClick={(e) => addTodo(e, value)}
+            className="my-btn btn-primary"
+          >
+            ADD
+          </button>
+        </div>
       </form>
+
       <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>
+        {todos.map((el) => (
+          <li key={el.id} className="todo-card">
             <input
-              onChange={(e) => setEditText(e.target.value)}
-              type="text"
-              value={todo.readOnly ? todo.text : editText}
-              readOnly={todo.readOnly}
-            />
-            <button onClick={() => removeTodo(todo.id)}>Delete</button>
-            <button
-              onClick={() =>
-                todo.readOnly
-                  ? startEdit(todo.id, todo.text)
-                  : confirmEdit(todo.id, editText)
+              style={
+                el.isEdited ? { boxShadow: "5px 3px 13px 5px #00000054" } : {}
               }
+              onFocus={() => onFocus(el.id)}
+              onBlur={() => onBlur()}
+              readOnly={!el.isEdited}
+              onChange={(event) => editTodo(el.id, event.target.value)}
+              className={el.isComplet ? "todo-text text-complete" : "todo-text"}
+              type="text"
+              value={el.text}
+            />
+            <button
+              onClick={() => removeTodo(el.id)}
+              className="my-btn btn-danger"
             >
-              {" "}
-              {todo.readOnly ? "Edit" : "Confirm"}{" "}
+              Delete
+            </button>
+            <button
+              onClick={() => handleComplete(el.id)}
+              className="my-btn btn-primary"
+            >
+              {el.isComplet ? "Undo" : "Complete"}
             </button>
           </li>
         ))}
@@ -98,7 +123,3 @@ function App() {
 }
 
 export default App;
-
-/// App js
-/// AddTodo    //// todoList
-///// todoCard
